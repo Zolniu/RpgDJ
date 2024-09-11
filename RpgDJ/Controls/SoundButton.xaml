@@ -1,0 +1,16 @@
+﻿<UserControl x:Class="RpgDJ.Controls.SoundButton"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:RpgDJ.ViewModels"
+             xmlns:local="clr-namespace:RpgDJ.Controls" 
+             xmlns:b ="schemas.microsoft.com/xaml/behaviors"
+             d:DataContext="{d:DesignInstance Type=vm:SoundButtonViewModel}"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid PreviewMouseDown="Grid_PreviewMouseDown" PreviewMouseUp="Grid_PreviewMouseUp" MouseMove="Grid_MouseMove">
+        <Button Width="{Binding Width}" Height="{Binding Height}" x:Name="playButton" Content="{Binding SoundName}" Command="{Binding ClickCommand}"/>
+        <Button Width="20" Height="20" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Gray" PreviewMouseDown="Button_PreviewMouseDown" />
+    </Grid>
+</UserControl> 
