@@ -4,13 +4,88 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:vm="clr-namespace:RpgDJ.ViewModels"
+             xmlns:gif="http://wpfanimatedgif.codeplex.com"
              xmlns:local="clr-namespace:RpgDJ.Controls" 
              xmlns:b ="schemas.microsoft.com/xaml/behaviors"
              d:DataContext="{d:DesignInstance Type=vm:SoundButtonViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid PreviewMouseDown="Grid_PreviewMouseDown" PreviewMouseUp="Grid_PreviewMouseUp" MouseMove="Grid_MouseMove">
-        <Button Width="{Binding Width}" Height="{Binding Height}" x:Name="playButton" Content="{Binding SoundName}" Command="{Binding ClickCommand}"/>
-        <Button Width="20" Height="20" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Gray" PreviewMouseDown="Button_PreviewMouseDown" />
+    <UserControl.Resources>
+        <Style TargetType="ToggleButton" x:Key="TransparentToggleButtonStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid x:Name="RootGrid" Background="Transparent">
+                            <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid Width="{Binding Width}" Height="{Binding Height}" 
+          Background="Transparent"
+          PreviewMouseDown="Grid_PreviewMouseDown" PreviewMouseUp="Grid_PreviewMouseUp" MouseMove="Grid_MouseMove" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave">
+        <Grid.InputBindings>
+            <MouseBinding MouseAction="LeftClick" Command="{Binding ClickCommand}"></MouseBinding>
+        </Grid.InputBindings>
+        <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="5">
+            <Grid >
+                <Grid.RowDefinitions>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                
+                <Image Source="{Binding ImagePath}" Visibility="{Binding ImagePath, Converter={StaticResource NullToVisibility}}"                        
+                       Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Grid.ColumnSpan="3" Stretch="Fill">                    
+                </Image>
+                <Image gif:ImageBehavior.AnimatedSource="{Binding AnimatedImagePath}" Visibility="{Binding AnimatedImagePath, Converter={StaticResource NullToVisibility}}"
+                       Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Grid.ColumnSpan="3" Stretch="Fill">
+                </Image>
+                <Rectangle Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Grid.ColumnSpan="3" Stretch="Fill" Fill="{Binding ImageTintBrush}" Opacity="0.25" Visibility="{Binding ImageVisibility}"></Rectangle>
+                
+                <TextBox Background="Black" Foreground="White" Text="{Binding SoundName, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" TextAlignment="Center" Margin="0,0,0,20"
+                           Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Grid.ColumnSpan="3" KeyUp="TextBox_KeyUp" BorderThickness="0" Opacity="0.75"
+                           ></TextBox>
+                
+                <Image Source="/Images/playIcon.png" Grid.Row="1" Grid.Column="1" Opacity="0.8" Visibility="{Binding PlayIconVisibility}"/>
+            </Grid>
+        </Border>
+        <Slider ToolTip="Volume"
+                Orientation="Vertical" HorizontalAlignment="Right" Margin="0, 50, 15, 50" Style="{StaticResource DynamicOpacity}" Visibility="{Binding AdditionalButtonsVisibility}"
+                Value="{Binding Volume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Maximum="1" Minimum="0" ></Slider>
+        <Button ToolTip="Resize - right click and drag"
+                Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Transparent" PreviewMouseDown="Button_PreviewMouseDown" BorderThickness="0"
+                Visibility="{Binding AdditionalButtonsVisibility}" Template="{StaticResource NoMouseOverButtonTemplate}" Style="{StaticResource DynamicOpacity}">
+            <Image Source="/Images/resize.png" Margin="4"></Image>
+        </Button>
+        <ToggleButton ToolTip="Loop toggle"
+                Width="32" Height="32" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="Transparent" BorderThickness="0" Style="{StaticResource TransparentToggleButtonStyle}"
+                Visibility="{Binding AdditionalButtonsVisibility}" IsChecked="{Binding IsLooping, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" >
+            <Image Margin="2">
+                <Image.Style>
+                    <Style TargetType="{x:Type Image}">
+                        <Setter Property="Opacity" Value="0.25"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="StackPanel.Opacity" Value="1" />
+                            </Trigger>
+                            <DataTrigger Binding="{Binding IsLooping}" Value="true">
+                                <Setter Property="Source" Value="/Images/loopingIcon.png"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsLooping}" Value="false">
+                                <Setter Property="Source" Value="/Images/notLoopingIcon.png"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
+        </ToggleButton>
     </Grid>
 </UserControl> 

@@ -12,7 +12,10 @@
     <Window.DataContext>
         <vm:MainWindowViewModel></vm:MainWindowViewModel>
     </Window.DataContext>
-    <Grid >
+    <Window.Resources>
+
+    </Window.Resources>
+    <Grid Background="Black" >
         <ItemsControl ItemsSource="{Binding SoundButtons}" >
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -26,5 +29,11 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+        <Button ToolTip="Mute all" Command="{Binding MuteAllCommand}" Margin="5" VerticalAlignment="Bottom" HorizontalAlignment="Left" Height="50" Width="50" 
+                Style="{StaticResource DynamicOpacity}" Template="{StaticResource NoMouseOverButtonTemplate}" Background="Transparent" BorderThickness="0">
+            <Image Source="/Images/mute.png"></Image>
+        </Button>
+        <Image ToolTip="Delete" Source="/Images/deleteIcon.png" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="100" Height="100" Visibility="{Binding AdditionalButtonsVisibility}" MouseEnter="Image_MouseEnter" MouseUp="Image_MouseUp" Style="{StaticResource DynamicOpacity}">
+        </Image>
     </Grid>
 </Window>

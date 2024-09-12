@@ -1,4 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using RpgDJ.Controls;
+using RpgDJ.DataModels;
+using RpgDJ.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Media;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -16,6 +20,12 @@ namespace RpgDJ.ViewModels
 {
     internal class SoundButtonViewModel : ViewModelBase
     {
+        SoundButtonViewModel()
+        {
+            SoundName = "No sound";
+            ImagePath = _defaultImage;
+        }
+
         public SoundButtonViewModel(string path)
         {
             var pathUri = new Uri(path);
@@ -25,22 +35,59 @@ namespace RpgDJ.ViewModels
             WidthPoints = 2;
             HeightPoints = 2;
 
+            ImagePath = _defaultImage;
+
+            ImageTintBrush = BrushHalpers.BrushMappings[(int)Random.Shared.NextInt64(20)];
+
             Path = path;
             SoundName = path.Split('\\', '/').Last();
+
+            IsLooping = false;
+
+            ImageVisibility = Visibility.Visible;
+            PlayIconVisibility = Visibility.Collapsed;
+            AdditionalButtonsVisibility = Visibility.Collapsed;
+
+            _mediaPlayer.MediaEnded += _mediaPlayer_MediaEnded;
 
             ClickCommand = new RelayCommand(() =>
             {
                 if (!_isPlaying)
                 {
-                    _mediaPlayer.Play();
-                    _isPlaying = true;
+                    Play();
                 }
                 else
                 {
-                    _mediaPlayer.Stop();
-                    _isPlaying = false;
+                    Stop();
                 }
             });
+        }
+
+        private void _mediaPlayer_MediaEnded(object? sender, EventArgs e)
+        {
+            if(IsLooping)
+            {
+                _mediaPlayer.Stop();
+                Play();
+            }
+            else
+            {
+                Stop();
+            }
+        }
+
+        public void Play()
+        {
+            _mediaPlayer.Play();
+            _isPlaying = true;
+            PlayIconVisibility = Visibility.Visible;
+        }
+
+        public void Stop()
+        {
+            _mediaPlayer.Stop();
+            _isPlaying = false;
+            PlayIconVisibility = Visibility.Collapsed;
         }
 
         public void StartDragging()
@@ -49,6 +96,8 @@ namespace RpgDJ.ViewModels
             {
                 _isBeingDragged = true;
                 _positionChanged = false;
+
+                ButtonDragged?.Invoke(this, new ButtonDraggedEventArgs { IsBeingDragged = true });
             }
         }
 
@@ -64,9 +113,11 @@ namespace RpgDJ.ViewModels
             _isBeingDragged = false;
             _isBeingResized = false;
 
+            ButtonDragged?.Invoke(this, new ButtonDraggedEventArgs { IsBeingDragged = false });
+
             if (_positionChanged)
             {
-                PositionChanged?.Invoke(this, EventArgs.Empty);
+                ApperanceChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -96,17 +147,114 @@ namespace RpgDJ.ViewModels
             }
         }
 
+        public bool HandleDrop(IDataObject dropData)
+        {
+            if (dropData is null)
+                return false;
+
+            if (dropData.GetData(DataFormats.FileDrop) is not IEnumerable<string> files)
+                return false;
+
+            if (files.Count() > 1)
+                return false;
+
+            var file = files.First();
+
+            if (!FilesHelper.IsImageFile(file))
+                return false;
+
+            if (FilesHelper.IsAnimatedImageFile(file))
+            {
+                ImagePath = null;
+                AnimatedImagePath = file;
+            }
+            else
+            {
+                AnimatedImagePath = null;
+                ImagePath = file;
+            }
+
+            ApperanceChanged?.Invoke(this, EventArgs.Empty);
+
+            return true;
+        }
+
         public ICommand ClickCommand { get; set; }
 
-        public event EventHandler PositionChanged;
+        public ICommand DeleteCommand { get; set; }
+
+        public event EventHandler ApperanceChanged;
+
+        public event EventHandler<ButtonDraggedEventArgs> ButtonDragged;
 
         public string SoundName 
         { 
             get => soundName;
             set 
             {
-                OnPropertyChanged(nameof(SoundName));
                 soundName = value;
+                OnPropertyChanged(nameof(SoundName));
+
+                ApperanceChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public string ImagePath 
+        { 
+            get => imagePath;
+
+            set
+            {
+                imagePath = value;
+                OnPropertyChanged(nameof(ImagePath));
+
+                ImageVisibility = imagePath == _defaultImage ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        public string AnimatedImagePath
+        {
+            get => animatedImagePath;
+
+            set
+            {
+                animatedImagePath = value;
+                OnPropertyChanged(nameof(AnimatedImagePath));
+
+                if(value is not null)
+                    ImageVisibility = Visibility.Collapsed;
+            }
+        }
+
+        public Visibility ImageVisibility
+        {
+            get => imageVisibility;
+
+            set
+            {
+                imageVisibility = value;
+                OnPropertyChanged(nameof(ImageVisibility));
+            }
+        }
+
+        public Visibility PlayIconVisibility
+        {
+            get => playIconVisibility;
+
+            set
+            {
+                playIconVisibility = value;
+                OnPropertyChanged(nameof(PlayIconVisibility));
+            }
+        }
+
+        public Brush ImageTintBrush 
+        { 
+            get => imageTintBrush;
+            set
+            {
+                imageTintBrush = value;
+                OnPropertyChanged(nameof(ImageTintBrush));
             }
         }
 
@@ -180,8 +328,39 @@ namespace RpgDJ.ViewModels
             }
         }
 
-        [DllImport("User32.dll")]
-        private static extern bool SetCursorPos(int X, int Y);
+        public Visibility AdditionalButtonsVisibility 
+        { 
+            get => additionalButtonsVisibility;
+            set
+            {
+                additionalButtonsVisibility = value;
+                OnPropertyChanged(nameof(AdditionalButtonsVisibility));
+            }
+        }
+
+        public bool IsLooping 
+        { 
+            get => isLooping;
+
+            set
+            {
+                isLooping = value;
+                OnPropertyChanged(nameof(IsLooping));
+
+                ApperanceChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public double Volume 
+        { 
+            get => _mediaPlayer.Volume;
+
+            set
+            {
+                _mediaPlayer.Volume = value;
+                OnPropertyChanged(nameof(Volume));
+            }
+        }
 
         private MediaPlayer _mediaPlayer;
         private bool _isPlaying;
@@ -199,5 +378,15 @@ namespace RpgDJ.ViewModels
         private int _marginTop = 0;
         private int _mouseOffsetX = 0;
         private int _mouseOffsetY = 0;
+        private string imagePath;
+        private string animatedImagePath;
+        private Visibility imageVisibility;
+        private Visibility playIconVisibility;
+        private Visibility additionalButtonsVisibility;
+        private bool isLooping;
+
+        private string _defaultImage = @"/Images/defaultButtonImage.png";
+        private Brush imageTintBrush;
+        private double volume;
     }
 }

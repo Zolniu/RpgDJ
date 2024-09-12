@@ -25,6 +25,10 @@ namespace RpgDJ.DataModels
             Margin = viewModel.Margin;
             WidthPoints = viewModel.WidthPoints;
             HeightPoints = viewModel.HeightPoints;
+            ImagePath = viewModel.ImagePath;
+            AnimatedImagePath = viewModel.AnimatedImagePath;
+            IsLooping = viewModel.IsLooping;
+            Volume = (float)viewModel.Volume;
         }
 
         public SoundButtonViewModel ToViewModel()
@@ -33,7 +37,12 @@ namespace RpgDJ.DataModels
             {
                 Margin = Margin,
                 WidthPoints = WidthPoints,
-                HeightPoints = HeightPoints
+                HeightPoints = HeightPoints,
+                ImagePath = ImagePath,
+                AnimatedImagePath = AnimatedImagePath,
+                SoundName = Name,
+                IsLooping = IsLooping,
+                Volume = Volume
             };
         }
 
@@ -41,7 +50,14 @@ namespace RpgDJ.DataModels
         public string Path { get; set; } = string.Empty;
         public string Margin { get; set; } = "0, 0, 0, 0";
 
+        public string ImagePath { get; set;} = string.Empty;
+        public string AnimatedImagePath { get; set;} = string.Empty;
+
+        public bool IsLooping { get; set; } = false;
+
         public int WidthPoints { get; set; } = 2;
         public int HeightPoints { get; set; } = 2;
+
+        public float Volume { get; set; } = 1;
     }
 }

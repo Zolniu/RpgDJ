@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Newtonsoft.Json;
 using RpgDJ.DataModels;
+using RpgDJ.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -21,8 +22,18 @@ namespace RpgDJ.ViewModels
     {
         public MainWindowViewModel()
         {
+            AdditionalButtonsVisibility = Visibility.Collapsed;
+
             Load();
+
+            MuteAllCommand = new RelayCommand(() => 
+            {
+                foreach (var sound in SoundButtons)
+                    sound.Stop();
+            });
         }
+
+        public ICommand MuteAllCommand { get; set; }
 
         public void HandleMouseMove(MouseEventArgs e)
         {
@@ -39,37 +50,54 @@ namespace RpgDJ.ViewModels
         {
             if (e.RightButton != MouseButtonState.Pressed)
             {
-                foreach (var button in SoundButtons)
-                {
-                    button.StopDragging();
-                }
+                _draggedButton?.StopDragging();
             }
         }
 
-        public void HandleDrop(IDataObject dataObject)
+        public void HandleMouseUpOnDeleteButton(MouseEventArgs e)
+        {
+            if (_draggedButton is not null)
+            {
+                SoundButtons.Remove(_draggedButton);
+
+                Save();
+            }
+        }
+
+        public void HandleDrop(Point position, IDataObject dataObject)
         {
             if (dataObject is null) return;
 
             if (dataObject.GetData(DataFormats.FileDrop) is not IEnumerable<string> files) return;
 
+            _lastDropPosition = position.SnapToGrid();
+
             foreach ( var file in files) 
             {
                 var soundButtonVM = new SoundButtonViewModel(file)
                 {
-                    Margin = $"{_lastDropPosition.X}, 0, 0, 0"
+                    Margin = $"{_lastDropPosition.X}, {_lastDropPosition.Y}, 0, 0"
                 };
 
-                soundButtonVM.PositionChanged += SoundButtonVM_PositionChanged;
+                soundButtonVM.ApperanceChanged += SoundButtonVM_ApperanceChanged;
+                soundButtonVM.ButtonDragged += SoundButtonVM_ButtonDragged;
 
                 SoundButtons.Add(soundButtonVM);
 
-                _lastDropPosition.X += Parameters.GridSize;
+                _lastDropPosition.X += Parameters.GridSize * 2;
             }
 
             Save();
         }
 
-        private void SoundButtonVM_PositionChanged(object? sender, EventArgs e)
+        private void SoundButtonVM_ButtonDragged(object? sender, ButtonDraggedEventArgs e)
+        {
+            _draggedButton = sender as SoundButtonViewModel;
+
+            AdditionalButtonsVisibility = e.IsBeingDragged ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void SoundButtonVM_ApperanceChanged(object? sender, EventArgs e)
         {
             Save();
         }
@@ -77,6 +105,18 @@ namespace RpgDJ.ViewModels
         public ObservableCollection<SoundButtonViewModel> SoundButtons { get; set; } = 
             [ 
             ];
+
+        public Visibility AdditionalButtonsVisibility 
+        { 
+            get => additionalButtonsVisibility; 
+            
+            set 
+            {
+                additionalButtonsVisibility = value;
+
+                OnPropertyChanged(nameof(AdditionalButtonsVisibility));
+            } 
+        }
 
         private void Load() 
         {
@@ -90,8 +130,9 @@ namespace RpgDJ.ViewModels
                 {
                     var soundButtonVM = sound.ToViewModel();
 
-                    soundButtonVM.PositionChanged += SoundButtonVM_PositionChanged;
-                    
+                    soundButtonVM.ApperanceChanged += SoundButtonVM_ApperanceChanged;
+                    soundButtonVM.ButtonDragged += SoundButtonVM_ButtonDragged;
+
                     SoundButtons.Add(soundButtonVM);
                 }
 
@@ -116,5 +157,8 @@ namespace RpgDJ.ViewModels
         private string _saveFileName = "Save.json";
 
         private Point _lastDropPosition = new (0, 0);
+        private Visibility additionalButtonsVisibility;
+
+        private SoundButtonViewModel? _draggedButton;
     }
 }

@@ -27,7 +27,7 @@ namespace RpgDJ
 
         private void MainWindow_Drop(object sender, DragEventArgs e)
         {
-            (DataContext as MainWindowViewModel)?.HandleDrop(e.Data);
+            (DataContext as MainWindowViewModel)?.HandleDrop(e.GetPosition(Application.Current.MainWindow), e.Data);
         }
 
         private void Grid_PreviewMouseMove(object sender, MouseEventArgs e)
@@ -38,6 +38,16 @@ namespace RpgDJ
         private void Window_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
             (DataContext as MainWindowViewModel)?.HandleMouseUp(e);
+        }
+
+        private void Image_MouseEnter(object sender, MouseEventArgs e)
+        {
+
+        }
+
+        private void Image_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            (DataContext as MainWindowViewModel)?.HandleMouseUpOnDeleteButton(e);
         }
     }
 }

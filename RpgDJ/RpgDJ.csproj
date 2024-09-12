@@ -9,8 +9,31 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\defaultButtonImage.png" />
+    <None Remove="Images\deleteIcon.png" />
+    <None Remove="Images\loopingIcon.png" />
+    <None Remove="Images\mute.png" />
+    <None Remove="Images\notLoopingIcon.png" />
+    <None Remove="Images\playIcon.png" />
+    <None Remove="Images\pngwing.com.png" />
+    <None Remove="Images\resize.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\defaultButtonImage.png" />
+    <Resource Include="Images\deleteIcon.png" />
+    <Resource Include="Images\mute.png" />
+    <Resource Include="Images\notLoopingIcon.png" />
+    <Resource Include="Images\loopingIcon.png" />
+    <Resource Include="Images\playIcon.png" />
+    <Resource Include="Images\pngwing.com.png" />
+    <Resource Include="Images\resize.png" />
   </ItemGroup>
 
 </Project>

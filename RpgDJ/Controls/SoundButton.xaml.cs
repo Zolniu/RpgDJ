@@ -25,6 +25,13 @@ namespace RpgDJ.Controls
         public SoundButton()
         {
             InitializeComponent();
+
+            Drop += SoundButton_Drop;
+        }
+
+        private void SoundButton_Drop(object sender, DragEventArgs e)
+        {
+            e.Handled = (DataContext as SoundButtonViewModel)!.HandleDrop(e.Data);
         }
 
         private void Grid_PreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -54,6 +61,29 @@ namespace RpgDJ.Controls
         private void Grid_MouseMove(object sender, MouseEventArgs e)
         {
             (DataContext as SoundButtonViewModel)!.MouseMove(e.GetPosition(Application.Current.MainWindow));
+        }
+
+        private void TextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            if(e.Key == Key.Enter) 
+            {
+                (sender as UIElement)!.MoveFocus(new TraversalRequest(FocusNavigationDirection.Up));
+            }
+        }
+
+        private void Grid_MouseEnter(object sender, MouseEventArgs e)
+        {
+            (DataContext as SoundButtonViewModel)!.AdditionalButtonsVisibility = Visibility.Visible;
+        }
+
+        private void Grid_MouseLeave(object sender, MouseEventArgs e)
+        {
+            var vm = DataContext as SoundButtonViewModel;
+
+            if (vm is not null)
+            {
+                vm.AdditionalButtonsVisibility = Visibility.Collapsed;
+            }
         }
     }
 }
