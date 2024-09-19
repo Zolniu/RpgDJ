@@ -24,6 +24,7 @@
             </ControlTemplate.Triggers>
         </ControlTemplate>
         <c:NullToVisibility x:Key="NullToVisibility"/>
+        <c:HeightToMarginConverter x:Key="HeightToMarginConverter" />
         <Style x:Key="DynamicOpacity" TargetType="FrameworkElement">
             <Setter Property="Opacity" Value="0.25"/>
             <Style.Triggers>

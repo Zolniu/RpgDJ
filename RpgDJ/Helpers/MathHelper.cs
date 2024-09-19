@@ -11,8 +11,7 @@ namespace RpgDJ.Helpers
     {
         public static Point SnapToGrid(this Point input)
         {
-            return new Point((input.X / Parameters.GridSize) * Parameters.GridSize, (input.Y / Parameters.GridSize) * Parameters.GridSize);
-            ;
+            return new Point((int)(input.X / Parameters.GridSize) * Parameters.GridSize, (int)(input.Y / Parameters.GridSize) * Parameters.GridSize);
         }
 
         public static int SnapToGrid(this int input) 

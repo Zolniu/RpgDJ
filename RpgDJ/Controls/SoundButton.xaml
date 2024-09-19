@@ -58,7 +58,7 @@
             </Grid>
         </Border>
         <Slider ToolTip="Volume"
-                Orientation="Vertical" HorizontalAlignment="Right" Margin="0, 50, 15, 50" Style="{StaticResource DynamicOpacity}" Visibility="{Binding AdditionalButtonsVisibility}"
+                Orientation="Vertical" HorizontalAlignment="Right" Margin="{Binding HeightPoints, Converter={StaticResource HeightToMarginConverter}, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DynamicOpacity}" Visibility="{Binding AdditionalButtonsVisibility}"
                 Value="{Binding Volume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Maximum="1" Minimum="0" ></Slider>
         <Button ToolTip="Resize - right click and drag"
                 Width="32" Height="32" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Transparent" PreviewMouseDown="Button_PreviewMouseDown" BorderThickness="0"

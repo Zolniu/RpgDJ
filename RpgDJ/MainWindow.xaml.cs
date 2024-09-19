@@ -27,17 +27,17 @@ namespace RpgDJ
 
         private void MainWindow_Drop(object sender, DragEventArgs e)
         {
-            (DataContext as MainWindowViewModel)?.HandleDrop(e.GetPosition(Application.Current.MainWindow), e.Data);
+            MainWindowViewModel?.HandleDrop(e.GetPosition(Application.Current.MainWindow), e.Data);
         }
 
         private void Grid_PreviewMouseMove(object sender, MouseEventArgs e)
         {
-            (DataContext as MainWindowViewModel)?.HandleMouseMove(e);
+            MainWindowViewModel?.HandleMouseMove(e);
         }
 
         private void Window_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
-            (DataContext as MainWindowViewModel)?.HandleMouseUp(e);
+            MainWindowViewModel?.HandleMouseUp(e);
         }
 
         private void Image_MouseEnter(object sender, MouseEventArgs e)
@@ -47,7 +47,37 @@ namespace RpgDJ
 
         private void Image_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            (DataContext as MainWindowViewModel)?.HandleMouseUpOnDeleteButton(e);
+            MainWindowViewModel?.HandleMouseUpOnDeleteButton(e);
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (WindowStyle == WindowStyle.SingleBorderWindow)
+            {
+                WindowStyle = WindowStyle.None;
+                WindowState = WindowState.Maximized;
+            }
+            else 
+            {
+                WindowStyle = WindowStyle.SingleBorderWindow;
+                WindowState = WindowState.Normal;
+            }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (MainWindowViewModel is not null && MainWindowViewModel.UnsavedChanges)
+            {
+                var answer = MessageBox.Show("Save changes?", "Unsaved changes.", MessageBoxButton.YesNoCancel);
+
+                switch (answer)
+                {
+                    case MessageBoxResult.Yes: MainWindowViewModel.Save(); break;
+                    case MessageBoxResult.Cancel: e.Cancel = true; break;
+                }
+            }
+        }
+
+        private MainWindowViewModel? MainWindowViewModel { get => DataContext as MainWindowViewModel; }
     }
 }

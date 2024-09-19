@@ -11,6 +11,7 @@
   <ItemGroup>
     <None Remove="Images\defaultButtonImage.png" />
     <None Remove="Images\deleteIcon.png" />
+    <None Remove="Images\fullScreen.png" />
     <None Remove="Images\loopingIcon.png" />
     <None Remove="Images\mute.png" />
     <None Remove="Images\notLoopingIcon.png" />
@@ -28,6 +29,7 @@
   <ItemGroup>
     <Resource Include="Images\defaultButtonImage.png" />
     <Resource Include="Images\deleteIcon.png" />
+    <Resource Include="Images\fullScreen.png" />
     <Resource Include="Images\mute.png" />
     <Resource Include="Images\notLoopingIcon.png" />
     <Resource Include="Images\loopingIcon.png" />

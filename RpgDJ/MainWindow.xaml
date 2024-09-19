@@ -7,8 +7,9 @@
         xmlns:vm="clr-namespace:RpgDJ.ViewModels"
         xmlns:c="clr-namespace:RpgDJ.Controls"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
-        PreviewMouseMove="Grid_PreviewMouseMove" PreviewMouseUp="Window_PreviewMouseUp">
+        Title="RPG DJ" 
+        Height="450" Width="800"
+        PreviewMouseMove="Grid_PreviewMouseMove" PreviewMouseUp="Window_PreviewMouseUp" Closing="Window_Closing">
     <Window.DataContext>
         <vm:MainWindowViewModel></vm:MainWindowViewModel>
     </Window.DataContext>
@@ -35,5 +36,9 @@
         </Button>
         <Image ToolTip="Delete" Source="/Images/deleteIcon.png" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="100" Height="100" Visibility="{Binding AdditionalButtonsVisibility}" MouseEnter="Image_MouseEnter" MouseUp="Image_MouseUp" Style="{StaticResource DynamicOpacity}">
         </Image>
+        <Button ToolTip="Full screen toggle" VerticalAlignment="Top" HorizontalAlignment="Right" Width="50" Height="50" Click="Button_Click"
+                Style="{StaticResource DynamicOpacity}" Template="{StaticResource NoMouseOverButtonTemplate}" Background="Transparent" BorderThickness="0">
+            <Image Source="/Images/fullScreen.png"></Image>
+        </Button>
     </Grid>
 </Window>

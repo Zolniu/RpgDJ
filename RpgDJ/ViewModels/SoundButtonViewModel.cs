@@ -28,19 +28,14 @@ namespace RpgDJ.ViewModels
 
         public SoundButtonViewModel(string path)
         {
-            var pathUri = new Uri(path);
-            _mediaPlayer = new MediaPlayer();
-            _mediaPlayer.Open(pathUri);
+            HandleSoundPath(path);
 
-            WidthPoints = 2;
-            HeightPoints = 2;
+            WidthPoints = 3;
+            HeightPoints = 3;
 
             ImagePath = _defaultImage;
 
             ImageTintBrush = BrushHalpers.BrushMappings[(int)Random.Shared.NextInt64(20)];
-
-            Path = path;
-            SoundName = path.Split('\\', '/').Last();
 
             IsLooping = false;
 
@@ -63,6 +58,19 @@ namespace RpgDJ.ViewModels
             });
         }
 
+        private void HandleSoundPath(string path)
+        {
+            path = path.Replace(AppDomain.CurrentDomain.BaseDirectory, @"");
+
+            var pathUri = path.Contains(':') ? new Uri(path) : new Uri(new Uri(AppDomain.CurrentDomain.BaseDirectory), path);
+
+            _mediaPlayer = new MediaPlayer();
+            _mediaPlayer.Open(pathUri);
+
+            Path = path;
+            SoundName = path.Split('\\', '/').Last();
+        }
+
         private void _mediaPlayer_MediaEnded(object? sender, EventArgs e)
         {
             if(IsLooping)
@@ -75,6 +83,8 @@ namespace RpgDJ.ViewModels
                 Stop();
             }
         }
+
+        public static string DefaultImage { get => _defaultImage; }
 
         public void Play()
         {
@@ -127,8 +137,6 @@ namespace RpgDJ.ViewModels
             {
                 var x = ((int)mousePosition.X - _marginLeft);
                 var y = ((int)mousePosition.Y - _marginTop); 
-
-                Application.Current.MainWindow.Title = $"Resizing {x}, {y}";
 
                 WidthPoints = (x / Parameters.GridSize) + 1;
                 HeightPoints = (y / Parameters.GridSize) + 1;
@@ -199,12 +207,14 @@ namespace RpgDJ.ViewModels
             }
         }
 
-        public string ImagePath 
+        public string? ImagePath 
         { 
             get => imagePath;
 
             set
             {
+
+
                 imagePath = value;
                 OnPropertyChanged(nameof(ImagePath));
 
@@ -212,7 +222,7 @@ namespace RpgDJ.ViewModels
             }
         }
 
-        public string AnimatedImagePath
+        public string? AnimatedImagePath
         {
             get => animatedImagePath;
 
@@ -269,7 +279,7 @@ namespace RpgDJ.ViewModels
 
                 margin = value;
 
-                var parts = margin.Split(",");
+                var parts = margin.Split(", ");
 
                 _marginLeft = int.Parse(parts[0]);
                 _marginTop = int.Parse(parts[1]);
@@ -290,6 +300,8 @@ namespace RpgDJ.ViewModels
                 {
                     widthPoints = value;
                     Width = value * Parameters.GridSize;
+
+                    OnPropertyChanged(nameof(WidthPoints));
                 }
             } 
         }
@@ -304,6 +316,8 @@ namespace RpgDJ.ViewModels
                 {
                     heightPoints = value;
                     Height = value * Parameters.GridSize;
+
+                    OnPropertyChanged(nameof(HeightPoints));
                 }
             }
         }
@@ -378,14 +392,14 @@ namespace RpgDJ.ViewModels
         private int _marginTop = 0;
         private int _mouseOffsetX = 0;
         private int _mouseOffsetY = 0;
-        private string imagePath;
-        private string animatedImagePath;
+        private string? imagePath;
+        private string? animatedImagePath;
         private Visibility imageVisibility;
         private Visibility playIconVisibility;
         private Visibility additionalButtonsVisibility;
         private bool isLooping;
 
-        private string _defaultImage = @"/Images/defaultButtonImage.png";
+        private static string _defaultImage = @"/Images/defaultButtonImage.png";
         private Brush imageTintBrush;
         private double volume;
     }

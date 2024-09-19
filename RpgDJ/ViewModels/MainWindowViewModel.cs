@@ -31,6 +31,8 @@ namespace RpgDJ.ViewModels
                 foreach (var sound in SoundButtons)
                     sound.Stop();
             });
+
+
         }
 
         public ICommand MuteAllCommand { get; set; }
@@ -60,7 +62,7 @@ namespace RpgDJ.ViewModels
             {
                 SoundButtons.Remove(_draggedButton);
 
-                Save();
+                UnsavedChanges = true;
             }
         }
 
@@ -84,10 +86,11 @@ namespace RpgDJ.ViewModels
 
                 SoundButtons.Add(soundButtonVM);
 
-                _lastDropPosition.X += Parameters.GridSize * 2;
+                _lastDropPosition.X += Parameters.GridSize * 3;
+                _lastDropPosition = _lastDropPosition.SnapToGrid();
             }
 
-            Save();
+            UnsavedChanges = true;
         }
 
         private void SoundButtonVM_ButtonDragged(object? sender, ButtonDraggedEventArgs e)
@@ -99,7 +102,7 @@ namespace RpgDJ.ViewModels
 
         private void SoundButtonVM_ApperanceChanged(object? sender, EventArgs e)
         {
-            Save();
+            UnsavedChanges = true;
         }
 
         public ObservableCollection<SoundButtonViewModel> SoundButtons { get; set; } = 
@@ -141,7 +144,7 @@ namespace RpgDJ.ViewModels
             catch { }
         }
 
-        private void Save()
+        public void Save()
         {
             var save = new SaveFileModel
             {
@@ -152,7 +155,11 @@ namespace RpgDJ.ViewModels
             var json = JsonConvert.SerializeObject(save);
 
             File.WriteAllText(_saveFileName, json);
+
+            UnsavedChanges = false;
         }
+
+        public bool UnsavedChanges { get; set; } = false;
 
         private string _saveFileName = "Save.json";
 
