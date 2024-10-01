@@ -35,8 +35,8 @@ namespace RpgDJ.ViewModels
 
             ImagePath = _defaultImage;
 
-            ImageTintBrush = BrushHalpers.BrushMappings[(int)Random.Shared.NextInt64(20)];
-
+            ColorNumber = (int)Random.Shared.NextInt64(20);
+           
             IsLooping = false;
 
             ImageVisibility = Visibility.Visible;
@@ -194,6 +194,16 @@ namespace RpgDJ.ViewModels
         public event EventHandler ApperanceChanged;
 
         public event EventHandler<ButtonDraggedEventArgs> ButtonDragged;
+
+        public int ColorNumber 
+        { 
+            get => colorNumber;
+            set
+            {
+                colorNumber = value;
+                ImageTintBrush = BrushHalpers.BrushMappings[ColorNumber];
+            }
+        }
 
         public string SoundName 
         { 
@@ -402,5 +412,6 @@ namespace RpgDJ.ViewModels
         private static string _defaultImage = @"/Images/defaultButtonImage.png";
         private Brush imageTintBrush;
         private double volume;
+        private int colorNumber;
     }
 }

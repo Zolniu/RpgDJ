@@ -9,36 +9,55 @@
         mc:Ignorable="d"
         Title="RPG DJ" 
         Height="450" Width="800"
-        PreviewMouseMove="Grid_PreviewMouseMove" PreviewMouseUp="Window_PreviewMouseUp" Closing="Window_Closing">
+        Closing="Window_Closing"
+        x:Name="mainWindow">
     <Window.DataContext>
         <vm:MainWindowViewModel></vm:MainWindowViewModel>
     </Window.DataContext>
     <Window.Resources>
 
     </Window.Resources>
-    <Grid Background="Black" >
-        <ItemsControl ItemsSource="{Binding SoundButtons}" >
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <Canvas></Canvas>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <c:SoundButton Margin="{Binding Margin}">
-                    </c:SoundButton>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-        <Button ToolTip="Mute all" Command="{Binding MuteAllCommand}" Margin="5" VerticalAlignment="Bottom" HorizontalAlignment="Left" Height="50" Width="50" 
-                Style="{StaticResource DynamicOpacity}" Template="{StaticResource NoMouseOverButtonTemplate}" Background="Transparent" BorderThickness="0">
-            <Image Source="/Images/mute.png"></Image>
-        </Button>
-        <Image ToolTip="Delete" Source="/Images/deleteIcon.png" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="100" Height="100" Visibility="{Binding AdditionalButtonsVisibility}" MouseEnter="Image_MouseEnter" MouseUp="Image_MouseUp" Style="{StaticResource DynamicOpacity}">
-        </Image>
-        <Button ToolTip="Full screen toggle" VerticalAlignment="Top" HorizontalAlignment="Right" Width="50" Height="50" Click="Button_Click"
-                Style="{StaticResource DynamicOpacity}" Template="{StaticResource NoMouseOverButtonTemplate}" Background="Transparent" BorderThickness="0">
-            <Image Source="/Images/fullScreen.png"></Image>
-        </Button>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{Binding TopPanelVisibility, Converter={StaticResource VisibilityToHeight}}"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Background="#202020" Visibility="{Binding TopPanelVisibility}" >
+            <StackPanel Orientation="Horizontal">
+                <ItemsControl ItemsSource="{Binding SessionPanels}" >
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding DisplayName}" Margin="{Binding IsActive, Converter={StaticResource SelectionToMargin}}" Padding="5, 0, 5, 0"
+                                    CommandParameter="{Binding SessionIndex}"
+                                    Command="{Binding DataContext.SelectSessionCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <ContextMenu.Items>
+                                            <MenuItem Name="Save" Command="{Binding SaveSessionCommand}">
+                                                <MenuItem.Header>
+                                                    <TextBlock Text="Save"></TextBlock>
+                                                </MenuItem.Header>
+                                            </MenuItem>
+                                            <MenuItem Name="Delete" Command="{Binding DeleteSessionCommand}" CommandParameter="{Binding SessionIndex}">
+                                                <MenuItem.Header>
+                                                    <TextBlock Text="Delete"></TextBlock>
+                                                </MenuItem.Header>
+                                            </MenuItem>
+                                        </ContextMenu.Items>
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button ToolTip="New session" Content="+" Margin="0, 2, 0, 2" Padding="5, 0, 5, 0" Command="{Binding NewSessionCommand}"></Button>
+            </StackPanel>
+        </Border>
+        <c:SessionPanel Grid.Row="1"  DataContext="{Binding SelectedSession}" ></c:SessionPanel>
     </Grid>
 </Window>

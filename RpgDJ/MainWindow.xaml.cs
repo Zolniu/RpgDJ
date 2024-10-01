@@ -20,49 +20,8 @@ namespace RpgDJ
         public MainWindow()
         {
             InitializeComponent();
-
-            AllowDrop = true;
-            Drop += MainWindow_Drop;
         }
 
-        private void MainWindow_Drop(object sender, DragEventArgs e)
-        {
-            MainWindowViewModel?.HandleDrop(e.GetPosition(Application.Current.MainWindow), e.Data);
-        }
-
-        private void Grid_PreviewMouseMove(object sender, MouseEventArgs e)
-        {
-            MainWindowViewModel?.HandleMouseMove(e);
-        }
-
-        private void Window_PreviewMouseUp(object sender, MouseButtonEventArgs e)
-        {
-            MainWindowViewModel?.HandleMouseUp(e);
-        }
-
-        private void Image_MouseEnter(object sender, MouseEventArgs e)
-        {
-
-        }
-
-        private void Image_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            MainWindowViewModel?.HandleMouseUpOnDeleteButton(e);
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            if (WindowStyle == WindowStyle.SingleBorderWindow)
-            {
-                WindowStyle = WindowStyle.None;
-                WindowState = WindowState.Maximized;
-            }
-            else 
-            {
-                WindowStyle = WindowStyle.SingleBorderWindow;
-                WindowState = WindowState.Normal;
-            }
-        }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -72,7 +31,7 @@ namespace RpgDJ
 
                 switch (answer)
                 {
-                    case MessageBoxResult.Yes: MainWindowViewModel.Save(); break;
+                    case MessageBoxResult.Yes: MainWindowViewModel.SaveAll(); break;
                     case MessageBoxResult.Cancel: e.Cancel = true; break;
                 }
             }

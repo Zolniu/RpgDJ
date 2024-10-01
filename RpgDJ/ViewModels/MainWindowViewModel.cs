@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Newtonsoft.Json;
+using RpgDJ.Controls;
 using RpgDJ.DataModels;
 using RpgDJ.Helpers;
 using System;
@@ -9,6 +10,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,108 +22,59 @@ namespace RpgDJ.ViewModels
 {
     internal class MainWindowViewModel : ViewModelBase
     {
+        private SessionPanelViewModel selectedSession;
+        private int selectedSessionIndex;
+        private ICommand selectSessionCommand;
+        private string _saveFileName = "Sessions.json";
+        private Visibility topPanelVisibility;
+
         public MainWindowViewModel()
         {
-            AdditionalButtonsVisibility = Visibility.Collapsed;
-
             Load();
 
-            MuteAllCommand = new RelayCommand(() => 
+            SelectedSessionIndex = 0;
+            SelectedSession = SessionPanels[SelectedSessionIndex];
+
+            SelectSessionCommand = new RelayCommand<int>(index => 
             {
-                foreach (var sound in SoundButtons)
-                    sound.Stop();
+                SelectedSessionIndex = index;
             });
 
+            SaveAllCommand = new RelayCommand(() =>
+            {
+                SaveAll();
+            });
 
+            SaveSessionCommand = new RelayCommand<int>((index) => 
+            {
+                SessionPanels[index].Save();
+            });
+
+            NewSessionCommand = new RelayCommand(() => 
+            {
+                SessionPanels.Add(PrepareSessionPanelVM($"Session {SessionPanels.Count + 1}", $"session{SessionPanels.Count + 1}.json", SessionPanels.Count));
+
+                SelectedSessionIndex = SessionPanels.Count - 1;
+            });
         }
 
-        public ICommand MuteAllCommand { get; set; }
-
-        public void HandleMouseMove(MouseEventArgs e)
+        private void DeleteSession(int index)
         {
-            if (e.RightButton == MouseButtonState.Pressed)
+            var answer = MessageBox.Show("Delete session?", "Confirm", MessageBoxButton.YesNo);
+
+            if (answer == MessageBoxResult.Yes)
             {
-                foreach (var button in SoundButtons)
-                {
-                    button.MouseMove(e.GetPosition(Application.Current.MainWindow));
-                }
+                SessionPanels.RemoveAt(index);
+
+                EnsureSessionExists();
+
+                SelectedSessionIndex = 0;
+
+                SaveSessionEntries();
             }
         }
 
-        public void HandleMouseUp(MouseEventArgs e) 
-        {
-            if (e.RightButton != MouseButtonState.Pressed)
-            {
-                _draggedButton?.StopDragging();
-            }
-        }
-
-        public void HandleMouseUpOnDeleteButton(MouseEventArgs e)
-        {
-            if (_draggedButton is not null)
-            {
-                SoundButtons.Remove(_draggedButton);
-
-                UnsavedChanges = true;
-            }
-        }
-
-        public void HandleDrop(Point position, IDataObject dataObject)
-        {
-            if (dataObject is null) return;
-
-            if (dataObject.GetData(DataFormats.FileDrop) is not IEnumerable<string> files) return;
-
-            _lastDropPosition = position.SnapToGrid();
-
-            foreach ( var file in files) 
-            {
-                var soundButtonVM = new SoundButtonViewModel(file)
-                {
-                    Margin = $"{_lastDropPosition.X}, {_lastDropPosition.Y}, 0, 0"
-                };
-
-                soundButtonVM.ApperanceChanged += SoundButtonVM_ApperanceChanged;
-                soundButtonVM.ButtonDragged += SoundButtonVM_ButtonDragged;
-
-                SoundButtons.Add(soundButtonVM);
-
-                _lastDropPosition.X += Parameters.GridSize * 3;
-                _lastDropPosition = _lastDropPosition.SnapToGrid();
-            }
-
-            UnsavedChanges = true;
-        }
-
-        private void SoundButtonVM_ButtonDragged(object? sender, ButtonDraggedEventArgs e)
-        {
-            _draggedButton = sender as SoundButtonViewModel;
-
-            AdditionalButtonsVisibility = e.IsBeingDragged ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        private void SoundButtonVM_ApperanceChanged(object? sender, EventArgs e)
-        {
-            UnsavedChanges = true;
-        }
-
-        public ObservableCollection<SoundButtonViewModel> SoundButtons { get; set; } = 
-            [ 
-            ];
-
-        public Visibility AdditionalButtonsVisibility 
-        { 
-            get => additionalButtonsVisibility; 
-            
-            set 
-            {
-                additionalButtonsVisibility = value;
-
-                OnPropertyChanged(nameof(AdditionalButtonsVisibility));
-            } 
-        }
-
-        private void Load() 
+        private void Load()
         {
             try
             {
@@ -129,43 +82,137 @@ namespace RpgDJ.ViewModels
 
                 var saved = JsonConvert.DeserializeObject<SaveFileModel>(json);
 
-                foreach (var sound in saved.Sounds)
+                var index = 0;
+                foreach (var session in saved.Sessions)
                 {
-                    var soundButtonVM = sound.ToViewModel();
-
-                    soundButtonVM.ApperanceChanged += SoundButtonVM_ApperanceChanged;
-                    soundButtonVM.ButtonDragged += SoundButtonVM_ButtonDragged;
-
-                    SoundButtons.Add(soundButtonVM);
+                    SessionPanels.Add(PrepareSessionPanelVM(session.Name, session.Path, index++));
                 }
-
-                _lastDropPosition = saved.LastDropPosition;
             }
-            catch { }
+            catch (FileNotFoundException ex)
+            {
+
+            }
+
+            EnsureSessionExists();
         }
 
-        public void Save()
+        private void EnsureSessionExists()
         {
-            var save = new SaveFileModel
+            if (SessionPanels.Count == 0)
             {
-                LastDropPosition = _lastDropPosition,
-                Sounds = SoundButtons.Select(s => new SoundFileModel(s)).ToList()
+                SessionPanels.Add(PrepareSessionPanelVM("Session 1", "session1.json", 0));
+            }
+        }
+
+        private SessionPanelViewModel PrepareSessionPanelVM(string sessionName, string saveFilePath, int index)
+        {
+            var newSession = new SessionPanelViewModel(Application.Current.MainWindow, saveFilePath)
+            {
+                SessionName = sessionName,
+                SessionIndex = index,
             };
 
-            var json = JsonConvert.SerializeObject(save);
+            newSession.DeleteSession += DeleteSession;
+            newSession.SaveSession += index => SaveSessionEntries();
 
-            File.WriteAllText(_saveFileName, json);
-
-            UnsavedChanges = false;
+            return newSession;
         }
 
-        public bool UnsavedChanges { get; set; } = false;
+        public void SaveAll()
+        {
+            var saveModel = new SaveFileModel { Sessions = [] };
 
-        private string _saveFileName = "Save.json";
+            foreach (var session in SessionPanels)
+            {
+                session.Save();
 
-        private Point _lastDropPosition = new (0, 0);
-        private Visibility additionalButtonsVisibility;
+                saveModel.Sessions.Add(new SessionEntry { Name = session.SessionName, Path = session.SaveFilePath });
+            }
 
-        private SoundButtonViewModel? _draggedButton;
+            var json = JsonConvert.SerializeObject(saveModel);
+
+            File.WriteAllText(_saveFileName, json);
+        }
+
+        public void SaveSessionEntries()
+        {
+            var saveModel = new SaveFileModel { Sessions = [] };
+
+            foreach (var session in SessionPanels)
+            {
+                saveModel.Sessions.Add(new SessionEntry { Name = session.SessionName, Path = session.SaveFilePath });
+            }
+
+            var json = JsonConvert.SerializeObject(saveModel);
+
+            File.WriteAllText(_saveFileName, json);
+        }
+
+        public ICommand SelectSessionCommand 
+        { 
+            get => selectSessionCommand;
+            set
+            {
+                selectSessionCommand = value;
+                OnPropertyChanged(nameof(SelectSessionCommand));
+            }
+        }
+
+        public Visibility TopPanelVisibility
+        {
+            get => topPanelVisibility;
+
+            set
+            {
+                topPanelVisibility = value;
+                OnPropertyChanged(nameof(TopPanelVisibility));
+            }
+        }
+
+        public ICommand DeleteSessionCommand { get; set; }
+
+        public ICommand SaveAllCommand { get; set; }
+
+        public ICommand SaveSessionCommand { get; set; }
+
+        public ICommand NewSessionCommand { get; set; }
+
+        public ObservableCollection<SessionPanelViewModel> SessionPanels { get; set; } = [];
+
+        public bool UnsavedChanges
+        {
+            get => SessionPanels.Any(s => s.UnsavedChanges);
+        }
+
+        public SessionPanelViewModel SelectedSession 
+        { 
+            get => selectedSession;
+
+            set
+            {
+                selectedSession = value;
+                OnPropertyChanged(nameof(SelectedSession));
+            }
+        }
+
+        public int SelectedSessionIndex 
+        { 
+            get => selectedSessionIndex;
+
+            set
+            {
+                if (SelectedSession is not null)
+                {
+                    SelectedSession.IsActive = false;
+                }
+
+                selectedSessionIndex = value;                
+                SelectedSession = SessionPanels[SelectedSessionIndex];
+
+                SelectedSession.IsActive = true;
+
+                OnPropertyChanged(nameof(SelectedSessionIndex));
+            }
+        }
     }
 }

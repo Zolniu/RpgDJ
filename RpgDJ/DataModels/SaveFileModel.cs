@@ -8,8 +8,20 @@ using System.Windows;
 
 namespace RpgDJ.DataModels
 {
-    internal class SaveFileModel
+    public class SaveFileModel 
     {
+        public List<SessionEntry> Sessions { get; set; }
+    }
+
+    public class SessionEntry
+    {
+        public string Name { get; set; }
+        public string Path { get; set; }
+    }
+
+    internal class SessionSaveFileModel
+    {
+        public string SessionName { get; set; }
         public Point LastDropPosition { get; set; } = new Point();
         public List<SoundFileModel> Sounds { get; set; } = [];
     }
@@ -25,6 +37,7 @@ namespace RpgDJ.DataModels
             Margin = viewModel.Margin;
             WidthPoints = viewModel.WidthPoints;
             HeightPoints = viewModel.HeightPoints;
+            ColorNumber = viewModel.ColorNumber;
             ImagePath = viewModel.ImagePath is null ? viewModel.ImagePath : viewModel.ImagePath.Replace(AppDomain.CurrentDomain.BaseDirectory, string.Empty);
             AnimatedImagePath = viewModel.AnimatedImagePath is null ? viewModel.AnimatedImagePath : viewModel.AnimatedImagePath.Replace(AppDomain.CurrentDomain.BaseDirectory, string.Empty);
             IsLooping = viewModel.IsLooping;
@@ -38,6 +51,7 @@ namespace RpgDJ.DataModels
                 Margin = Margin,
                 WidthPoints = WidthPoints,
                 HeightPoints = HeightPoints,
+                ColorNumber = ColorNumber,
                 ImagePath = (ImagePath is null || ImagePath == SoundButtonViewModel.DefaultImage ||  ImagePath.Contains(':')) ? ImagePath : $"{AppDomain.CurrentDomain.BaseDirectory}{ImagePath}",
                 AnimatedImagePath = (AnimatedImagePath is null || AnimatedImagePath.Contains(':')) ? AnimatedImagePath : $"{AppDomain.CurrentDomain.BaseDirectory}{AnimatedImagePath}",
                 SoundName = Name,
@@ -50,6 +64,7 @@ namespace RpgDJ.DataModels
         public string Path { get; set; } = string.Empty;
         public string Margin { get; set; } = "0, 0, 0, 0";
 
+        public int ColorNumber { get; set; }
         public string? ImagePath { get; set;} = string.Empty;
         public string? AnimatedImagePath { get; set;} = string.Empty;
 
