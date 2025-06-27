@@ -22,6 +22,8 @@ namespace RpgDJ.ViewModels
     {
         public SessionPanelViewModel(Window mainWindow, string saveFilePath)
         {
+            _mainWindowViewModel = () => (mainWindow.DataContext as MainWindowViewModel)!;
+
             IsActive = false;
             AdditionalButtonsVisibility = Visibility.Collapsed;
 
@@ -45,32 +47,53 @@ namespace RpgDJ.ViewModels
                     mainWindow.WindowStyle = WindowStyle.None;
                     mainWindow.WindowState = WindowState.Maximized;
 
-                    (mainWindow.DataContext as MainWindowViewModel).TopPanelVisibility = Visibility.Collapsed;
+                    _mainWindowViewModel().TopPanelVisibility = Visibility.Collapsed;
                 }
                 else
                 {
                     mainWindow.WindowStyle = WindowStyle.SingleBorderWindow;
                     mainWindow.WindowState = WindowState.Normal;
 
-                    (mainWindow.DataContext as MainWindowViewModel).TopPanelVisibility = Visibility.Visible;
+                    _mainWindowViewModel().TopPanelVisibility = Visibility.Visible;
                 }
             });
 
             DeleteSessionCommand = new RelayCommand(Delete);
 
             SaveSessionCommand = new RelayCommand(Save);
+
+            RenameSessionCommand = new RelayCommand(Rename);
         }
 
         public event Action<int> DeleteSession;
         public event Action<int> SaveSession;
 
-        public string SessionName { get; set; }
+        public string SessionName
+        {
+            get => sessionName;
+
+            set
+            {
+                sessionName = value;
+                OnPropertyChanged(nameof(SessionName));
+                OnPropertyChanged(nameof(DisplayName));
+            }
+        }
 
         public string SaveFilePath { get; set; }
 
         public string DisplayName { get => $"{SessionName}{(UnsavedChanges ? "*" : string.Empty) }"; }
 
-        public int SessionIndex { get; set; }
+        public int SessionIndex 
+        {
+            get => sessionIndex;
+
+            set
+            {
+                sessionIndex = value;
+                OnPropertyChanged(nameof(SessionIndex));
+            }
+        }
 
         public bool IsActive 
         { 
@@ -87,6 +110,8 @@ namespace RpgDJ.ViewModels
         public ICommand FullScreenCommand { get; set; }
 
         public ICommand SaveSessionCommand { get; set; }
+
+        public ICommand RenameSessionCommand {  get; set; }
 
         public ICommand DeleteSessionCommand { get; set; }
 
@@ -216,6 +241,15 @@ namespace RpgDJ.ViewModels
             SaveSession?.Invoke(SessionIndex);
         }
 
+        public void Rename()
+        {
+            _mainWindowViewModel().RenameWindowViewModel = new RenameWindowViewModel
+            {
+                SessionPanel = this,
+                RenameWindowVisibility = Visibility.Visible,
+            };
+        }
+
         public void Delete()
         {
             File.Delete(SaveFilePath);
@@ -239,7 +273,11 @@ namespace RpgDJ.ViewModels
         private Visibility additionalButtonsVisibility;
 
         private SoundButtonViewModel? _draggedButton;
+        private Func<MainWindowViewModel> _mainWindowViewModel;
+
         private bool unsavedChanges = false;
         private bool isActive;
+        private int sessionIndex = 0;
+        private string sessionName;
     }
 }

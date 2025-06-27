@@ -27,6 +27,7 @@ namespace RpgDJ.ViewModels
         private ICommand selectSessionCommand;
         private string _saveFileName = "Sessions.json";
         private Visibility topPanelVisibility;
+        private RenameWindowViewModel renameWindowViewModel;
 
         public MainWindowViewModel()
         {
@@ -56,6 +57,8 @@ namespace RpgDJ.ViewModels
 
                 SelectedSessionIndex = SessionPanels.Count - 1;
             });
+
+            RenameWindowViewModel = new RenameWindowViewModel();
         }
 
         private void DeleteSession(int index)
@@ -138,8 +141,11 @@ namespace RpgDJ.ViewModels
         {
             var saveModel = new SaveFileModel { Sessions = [] };
 
+            var currentIndex = 0;
             foreach (var session in SessionPanels)
             {
+                session.SessionIndex = currentIndex++;
+
                 saveModel.Sessions.Add(new SessionEntry { Name = session.SessionName, Path = session.SaveFilePath });
             }
 
@@ -169,6 +175,8 @@ namespace RpgDJ.ViewModels
             }
         }
 
+
+
         public ICommand DeleteSessionCommand { get; set; }
 
         public ICommand SaveAllCommand { get; set; }
@@ -178,6 +186,17 @@ namespace RpgDJ.ViewModels
         public ICommand NewSessionCommand { get; set; }
 
         public ObservableCollection<SessionPanelViewModel> SessionPanels { get; set; } = [];
+
+        public RenameWindowViewModel RenameWindowViewModel 
+        { 
+            get => renameWindowViewModel;
+
+            set
+            {
+                renameWindowViewModel = value;
+                OnPropertyChanged(nameof(RenameWindowViewModel));
+            }
+        }
 
         public bool UnsavedChanges
         {
